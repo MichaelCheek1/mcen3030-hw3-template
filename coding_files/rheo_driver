@@ -1,0 +1,51 @@
+clc
+clear
+
+data = readmatrix('rheo_data.csv');
+
+x = data(:,1);   % shear rate 
+y = data(:,2);   % shear stress 
+
+Z = x;   
+[A_B,~,~] = fit_linear(Z,y);
+
+tauB = A_B(1);
+etaB = A_B(2);
+
+
+Hmodel = @(x,p) p(1) + p(2)*x.^p(3);
+
+seeds_H = [1; 1; 1];   
+A_H = fit_nonlinear(x,y,Hmodel,seeds_H);
+
+
+
+Pmodel = @(x,p) p(1) + p(2)*x + p(3)*x.^p(4);
+
+seeds_P = [1; 1; 1; 1];   
+A_P = fit_nonlinear(x,y,Pmodel,seeds_P);
+
+
+
+x_smooth = logspace(log10(min(x)), log10(max(x)), 400)';
+
+yB = tauB + etaB*x_smooth;
+yH = Hmodel(x_smooth,A_H);
+yP = Pmodel(x_smooth,A_P);
+
+figure
+semilogx(x,y,'ko','MarkerFaceColor','k','MarkerSize',6)
+hold on
+
+semilogx(x_smooth,yB,'r','LineWidth',2)
+semilogx(x_smooth,yH,'b','LineWidth',2)
+semilogx(x_smooth,yP,'g','LineWidth',2)
+
+
+xlabel('Shear Rate, \gammȧ [1/s]','FontSize',16)
+ylabel('Shear Stress, \tau [Pa]','FontSize',16)
+
+legend('Data','Bingham','Hershel-Bulkley','HB Plus','Location','northwest')
+
+set(gca,'FontSize',14)
+grid on
