@@ -1,0 +1,33 @@
+function A = fit_nonlinear(x,y,model,seeds)
+
+    max_iter = 100;
+    h = 1e-6;
+
+    A = seeds;                 
+    m = length(seeds);         
+    n = length(x);
+
+    for j = 1:max_iter
+
+        yhat = model(x,A);     
+        D = y - yhat;          
+
+        
+        Z = zeros(n,m);
+
+        for i = 1:m
+            H = zeros(m,1);
+            H(i) = h;
+
+            y_perturbed = model(x, A + H);
+
+            Z(:,i) = (y_perturbed - yhat)/h;   % numerical partial derivative
+        end
+
+        % Gauss-Newton update
+        dA = (Z' * Z) \ (Z' * D);
+
+        A = A + dA;
+
+    end
+end
